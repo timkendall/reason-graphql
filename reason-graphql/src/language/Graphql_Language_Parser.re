@@ -337,11 +337,9 @@ let parseFragmentDefinition = (lexer: Lexer.t) => {
 
 let parseArgumentDefinition = (lexer: Lexer.t): result(inputValueDefinition) => {
   let%Result name = parseName(lexer);
+  let%Result directives = parseDirectives(lexer, ~isConst=true);
   let%Result _ = expect(lexer, Colon);
   let%Result typ = parseTypeReference(lexer);
-
-  // TODO let%Result directives = parseDirectives(lexer, ~isConst=true);
-  // TODO parseDefaultValue..
   
   Ok({name, typ, defaultValue: None });
 };
@@ -362,19 +360,20 @@ and parseFieldDefinition = (lexer: Lexer.t) => {
   let%Result _ = skip(lexer, Colon);
   let%Result arguments = parseArgumentDefinitions(lexer);
   let%Result typ = parseTypeReference(lexer);
+  let%Result directives = parseDirectives(lexer, ~isConst=false);
 
-  // TODO Support directives
-  // let%Result directives = parseDirectives(lexer, ~isConst=false);
-
-  Ok({ name, arguments, typ });
+  Ok({ name, arguments, directives, typ });
 };
 
 let parseObjectTypeDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result name = parseName(lexer);
-  let%Result fields = parseFieldsDefinition(lexer); 
+  let%Result directives = parseDirectives(lexer, ~isConst=false);
+  let%Result fields = parseFieldsDefinition(lexer);
 
-  Ok(ObjectTypeDefinition({ name, interfaces: [], fields }));
+  // TODO Parse `implements` interface
+
+  Ok(ObjectTypeDefinition({ name, interfaces: [], directives, fields }));
 };
 
 // parseSchemaDefinition

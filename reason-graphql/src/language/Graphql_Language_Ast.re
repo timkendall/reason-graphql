@@ -113,12 +113,14 @@ and typeDefinition =
 and objectTypeDefinition = {
   name: string,
   interfaces: list(string),
+  directives: list(directive),
   fields: list(fieldDefinition),
 }
 
 and fieldDefinition = {
   name: string,
   arguments: list(inputValueDefinition),
+  directives: list(directive),
   typ: typeReference,
 }
 
@@ -131,20 +133,24 @@ and inputValueDefinition = {
 and interfaceTypeDefinition = {
   name: string,
   fields: list(fieldDefinition),
+  directives: list(directive),
 }
 
 and unionTypeDefinition = {
   name: string,
   types: list(string),
+  directives: list(directive),
 }
 
 and enumTypeDefintion = {
   name: string,
+  directives: list(directive),
   values: list(string),
 }
 
 and inputObjectTypeDefinition = {
   name: string,
+  directives: list(directive),
   fields: list(inputValueDefinition),
 }
 

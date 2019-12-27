@@ -118,14 +118,14 @@ let printOperationDef =
   };
 };
 
-let printFieldDefinition = ({name, arguments, typ}) =>
+let printFieldDefinition = ({name, arguments, directives, typ}) =>
   join(
     [
       // TODO Arguments printAlias(alias) ++ name ++ wrap("(", printArguments(arguments), ")"),
       name,
       ": ",
       printType(typ),
-      // TODO Directives printDirectives(directives),
+      " " ++ printDirectives(directives),
     ],
     "",
   );
@@ -147,6 +147,11 @@ let printTypeSystemDef = (typeSystemDef) => {
     | _ => "NOT IMPLEMENTED"
   };
 
+  let directivesString = switch(typeSystemDef) {
+    | TypeDefinition(ObjectTypeDefinition({ directives })) => printDirectives(directives)
+    | _ => ""
+  };
+
   let fieldDefsString = switch(typeSystemDef) {
     | TypeDefinition(ObjectTypeDefinition({ fields })) => Some(printFieldsDefinition(fields))
     | _ => None
@@ -157,6 +162,7 @@ let printTypeSystemDef = (typeSystemDef) => {
   join([
     defTypeString,
     defNameString,
+    directivesString,
     Belt.Option.getWithDefault(fieldDefsString, ""),
   ], " ");
 };
