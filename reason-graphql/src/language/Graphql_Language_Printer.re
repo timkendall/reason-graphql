@@ -118,6 +118,49 @@ let printOperationDef =
   };
 };
 
+let printFieldDefinition = ({name, arguments, typ}) =>
+  join(
+    [
+      // TODO Arguments printAlias(alias) ++ name ++ wrap("(", printArguments(arguments), ")"),
+      name,
+      ": ",
+      printType(typ),
+      // TODO Directives printDirectives(directives),
+    ],
+    "",
+  );
+
+
+let printFieldsDefinition = fieldsDef =>
+  fieldsDef |> Belt.List.map(_, printFieldDefinition) |> block;
+
+
+
+let printTypeSystemDef = (typeSystemDef) => {
+  let defTypeString = switch(typeSystemDef) {
+    | TypeDefinition(ObjectTypeDefinition(_)) => "type"
+    | _ => "NOT IMPLEMENTED"
+  };
+
+  let defNameString = switch(typeSystemDef) {
+    | TypeDefinition(ObjectTypeDefinition({ name })) => name
+    | _ => "NOT IMPLEMENTED"
+  };
+
+  let fieldDefsString = switch(typeSystemDef) {
+    | TypeDefinition(ObjectTypeDefinition({ fields })) => Some(printFieldsDefinition(fields))
+    | _ => None
+  };
+ 
+ // TODO
+
+  join([
+    defTypeString,
+    defNameString,
+    Belt.Option.getWithDefault(fieldDefsString, ""),
+  ], " ");
+};
+
 let printFragmentDef = ({name, typeCondition, directives, selectionSet}) =>
   "fragment "
   ++ name
@@ -129,6 +172,7 @@ let printFragmentDef = ({name, typeCondition, directives, selectionSet}) =>
 
 let printDefinition = definition =>
   switch (definition) {
+  | TypeSystemDefinition(typeSystemDef) => printTypeSystemDef(typeSystemDef)
   | OperationDefinition(operationDef) => printOperationDef(operationDef)
   | FragmentDefinition(fragmentDef) => printFragmentDef(fragmentDef)
   };

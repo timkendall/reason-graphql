@@ -1,6 +1,32 @@
 open Jest;
 open Graphql_Language;
 
+describe("Parse and print a graphql schema", () => {
+  open Expect;
+
+  let schema = {|
+    type User {
+      id: ID!
+      firstName: String!
+      lastName: String!
+      nicknames: [String!]
+      createdAt: DateTime!
+      updatedAt: DateTime!
+    }
+  |};
+
+  test("should parse schema correctly", () => {
+    let maybeDocument = Parser.parse(schema);
+
+    let out = maybeDocument->Belt.Result.getExn->Printer.print;
+    Js.log(out);
+    
+    expect(Belt.Result.isOk(maybeDocument)) |> toBe(true);
+
+    // expect(out) |> toBe(schema); TODO Some whitespace formatting issues
+  });
+});
+
 describe("Parse and print a graphql query", () => {
   open Expect;
 

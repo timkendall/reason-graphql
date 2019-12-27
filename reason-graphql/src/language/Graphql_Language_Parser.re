@@ -333,10 +333,81 @@ let parseFragmentDefinition = (lexer: Lexer.t) => {
   Ok(FragmentDefinition({typeCondition, name, selectionSet, directives}));
 };
 
+/* Type System Definitions */
+
+let parseArgumentDefinition = (lexer: Lexer.t): result(inputValueDefinition) => {
+  let%Result name = parseName(lexer);
+  let%Result _ = expect(lexer, Colon);
+  let%Result typ = parseTypeReference(lexer);
+
+  // TODO let%Result directives = parseDirectives(lexer, ~isConst=true);
+  // TODO parseDefaultValue..
+  
+  Ok({name, typ, defaultValue: None });
+};
+
+let parseArgumentDefinitions = (lexer: Lexer.t) =>
+  switch (lexer.curr.token) {
+  | ParenOpen => many(lexer, ParenOpen, parseArgumentDefinition, ParenClose)
+  | _ => Ok([])
+  };
+  
+
+let rec parseFieldsDefinition = (lexer: Lexer.t): result(list(fieldDefinition)) => {
+  many(lexer, BraceOpen, parseFieldDefinition, BraceClose);
+}
+
+and parseFieldDefinition = (lexer: Lexer.t) => {
+  let%Result name = parseName(lexer);
+  let%Result _ = skip(lexer, Colon);
+  let%Result arguments = parseArgumentDefinitions(lexer);
+  let%Result typ = parseTypeReference(lexer);
+
+  // TODO Support directives
+  // let%Result directives = parseDirectives(lexer, ~isConst=false);
+
+  Ok({ name, arguments, typ });
+};
+
+let parseObjectTypeDefinition = (lexer: Lexer.t) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result name = parseName(lexer);
+  let%Result fields = parseFieldsDefinition(lexer); 
+
+  Ok(ObjectTypeDefinition({ name, interfaces: [], fields }));
+};
+
+// parseSchemaDefinition
+// parseDirectiveDefinition
+// ..
+
+let parseTypeDefinition = (lexer: Lexer.t): result(typeDefinition) => {
+  switch (lexer.curr.token) {
+  // | Name("schema") => parseSchemaDefinition(lexer)
+  // | Name("scalar") => parseScalarTypeDefinition(lexer)
+  | Name("type") => parseObjectTypeDefinition(lexer)
+  // | Name("interface") => parseInterfaceTypeDefinition(lexer)
+  // | Name("union") => parseUnionTypeDefinition(lexer)
+  // | Name("enum") => parseEnumTypeDefinition(lexer)
+  // | Name("input") => parseInputObjectTypeDefinition(lexer)
+  // | Name("directive") => parseDirectiveDefinition(lexer)
+  | _ => unexpected(lexer)
+  };
+};
+
+let parseTypeSystemDefinition = (lexer: Lexer.t): result(definition) => {
+  let%Result typeDefinition = parseTypeDefinition(lexer);
+  Ok(TypeSystemDefinition(TypeDefinition(typeDefinition)));
+};
+
+/* Common */
+
 let parseExecutableDefinition = (lexer: Lexer.t) =>
   switch (lexer.curr.token) {
   | Name("query" | "mutation" | "subscription")
   | BraceOpen => parseOperationDefinition(lexer)
+  | Name("schema" | "scalar" | "type" | "interface" | "union" | "enum" | "input" | "directive") => parseTypeSystemDefinition(lexer)
+  // | BraceOpen => parseTypeSystemDefinition(lexer)
   | Name("fragment") => parseFragmentDefinition(lexer)
   | _ => unexpected(lexer)
   };

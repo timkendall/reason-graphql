@@ -23,6 +23,7 @@ type value = [
 type document = {definitions: list(definition)}
 
 and definition =
+  | TypeSystemDefinition(typeSystemDefinition)
   | OperationDefinition(operationDefinition)
   | FragmentDefinition(fragmentDefinition)
 
