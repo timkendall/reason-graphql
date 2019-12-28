@@ -352,7 +352,7 @@ let parseArgumentDefinition = (lexer: Lexer.t): result(inputValueDefinition) => 
   let%Result _ = expect(lexer, Colon);
   let%Result typ = parseTypeReference(lexer);
   
-  Ok({name, typ, defaultValue: None });
+  Ok({name, typ, directives, defaultValue: None });
 };
 
 let parseArgumentDefinitions = (lexer: Lexer.t) =>
@@ -417,6 +417,8 @@ let parseObjectTypeDefinition = (lexer: Lexer.t) => {
   Ok(ObjectTypeDefinition({ name, interfaces: [], directives, fields }));
 };
 
+
+
 let parseScalarTypeDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result name = parseName(lexer);
@@ -447,10 +449,9 @@ let parseInputValueDefinition = (lexer: Lexer.t): result(inputValueDefinition) =
       Ok(None);
     }
   }
+  let%Result directives = parseDirectives(lexer, ~isConst=true);
 
-  /* let%Result directives = parseDirectives(lexer, ~isConst=true); */
-
-  Ok({ name, typ, defaultValue });
+  Ok({ name, typ, defaultValue, directives });
 };
 
 let parseInputValueDefinitions = (lexer: Lexer.t) =>
@@ -460,7 +461,22 @@ let parseInputValueDefinitions = (lexer: Lexer.t) =>
   };
 
 
+let parseInputObjectDefinitions = (lexer: Lexer.t) =>
+  switch (lexer.curr.token) {
+  | BraceOpen => many(lexer, BraceOpen, parseInputValueDefinition, BraceClose)
+  | _ => Ok([])
+  };
 
+
+
+let parseInputObjectTypeDefinition = (lexer: Lexer.t) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result name = parseName(lexer);  
+  let%Result directives = parseDirectives(lexer, ~isConst=false);
+  let%Result fields = parseInputObjectDefinitions(lexer);
+
+  Ok(InputObjectTypeDefinition({ name, directives, fields }));
+};
 
 
 let rec parseDirectiveLocations = (lexer: Lexer.t, locations: list(directiveLocation)) => {
@@ -551,7 +567,7 @@ let parseTypeDefinition = (lexer: Lexer.t) => {
   | Name("interface") => parseInterfaceTypeDefinition(lexer)
   /* | Name("union") => parseUnionTypeDefinition(lexer) */
   | Name("enum") => parseEnumTypeDefinition(lexer)
-  /* | Name("input") => parseInputObjectTypeDefinition(lexer) */
+  | Name("input") => parseInputObjectTypeDefinition(lexer)
   | _ => unexpected(lexer)
   };
 

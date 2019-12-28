@@ -27,6 +27,11 @@ describe("Parse and print a graphql schema", () => {
       FEMALE
     }
 
+    input MyInput @bingo {
+      foo: String! @bingo
+      bar: Float
+    }
+
     type User @example {
       id: ID! @example(sweet: true)
       firstName: String!

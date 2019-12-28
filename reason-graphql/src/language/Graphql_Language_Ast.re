@@ -130,6 +130,7 @@ and fieldDefinition = {
 and inputValueDefinition = {
   name: string,
   typ: typeReference,
+  directives: list(directive),
   defaultValue: option(value),
 }
 

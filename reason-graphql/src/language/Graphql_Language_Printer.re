@@ -174,14 +174,16 @@ let printDirectiveLocation = (location): string => {
   };
 };
 
+let printDefaultValue = (defaultValue) => {
+  defaultValue 
+    -> Belt.Option.map(_, value => " = " ++ printValue(value))
+    -> Belt.Option.getWithDefault(_, "");
+}
+
 let printDirectiveDef = ({ name, arguments, repeatable, locations }) => {
   let printableArgs = Belt.List.map(arguments, 
     ({ name, typ, defaultValue }) => {
-      let defaultString = defaultValue 
-        -> Belt.Option.map(_, value => " = " ++ printValue(value))
-        -> Belt.Option.getWithDefault(_, "");
-
-      name ++ ": " ++ printType(typ) ++ defaultString;
+      name ++ ": " ++ printType(typ) ++ printDefaultValue(defaultValue);
   });
   let printableLocations = locations -> Belt.List.map(_, printDirectiveLocation);
   
@@ -227,12 +229,42 @@ let printInterfaceTypeDef = ({ name, fields, directives }: interfaceTypeDefiniti
 let printEnumTypeDef = ({ name, values, directives }) => {
   let directivesString = printDirectives(directives);
   let valuesString = printEnumValuesDefinition(values);
-  
+
   join([
     "enum",
     name,
     directivesString,
     valuesString,
+  ], " ");
+};
+
+let printInputFieldDefinition = ({name, directives, typ, defaultValue }: inputValueDefinition) =>
+  join(
+    [
+      /*name ++ " " ++ wrap("(", printArguments(arguments), ")"),*/
+      name,
+      ": ",
+      printType(typ),
+      printDefaultValue(defaultValue),
+      " " ++ printDirectives(directives),
+    ],
+    "",
+  );
+
+
+let printInputFieldsDefinition = (fieldsDef: list(inputValueDefinition)) =>
+  fieldsDef |> Belt.List.map(_, printInputFieldDefinition) |> block;
+
+let printInputObjectTypeDef = ({ name, directives, fields }) => {
+  let directivesString = printDirectives(directives);
+  /* TODO interfaces */
+  let fieldDefsString = printInputFieldsDefinition(fields);
+
+  join([
+    "input",
+    name,
+    directivesString,
+    fieldDefsString,
   ], " ");
 };
 
@@ -243,7 +275,7 @@ let printTypeDef = (typeDef) => {
   | InterfaceTypeDefinition(interfaceTypeDefinition) => printInterfaceTypeDef(interfaceTypeDefinition)
   | UnionTypeDefinition(unionTypeDefinition) => "TODO"
   | EnumTypeDefinition(enumTypeDefintion) => printEnumTypeDef(enumTypeDefintion)
-  | InputObjectTypeDefinition(inputObjectTypeDefinition) => "TODO"
+  | InputObjectTypeDefinition(inputObjectTypeDefinition) => printInputObjectTypeDef(inputObjectTypeDefinition)
   };
 };
 
