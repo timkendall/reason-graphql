@@ -16,9 +16,15 @@ describe("Parse and print a graphql schema", () => {
     ) repeatable on OBJECT | FIELD_DEFINITION
 
     scalar DateTime
+    scalar _Any
 
     interface Node {
       id: ID!
+    }
+
+    enum Gender {
+      MALE
+      FEMALE
     }
 
     type User @example {

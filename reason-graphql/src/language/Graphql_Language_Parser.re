@@ -521,14 +521,37 @@ let parseDirectiveDefinition = (lexer: Lexer.t) => {
   }));
 };
 
+let rec parseEnumValuesDefinition = (lexer: Lexer.t): result(list(string)) => {
+  many(lexer, BraceOpen, parseEnumValueDefinition, BraceClose);
+}
+
+and parseEnumValueDefinition = (lexer: Lexer.t): result(string) => {
+   /* let%Result directives = parseDirectives(lexer, ~isConst=true); */
+  let%Result name = parseName(lexer);
+
+  // let%Result _ = expectOptional(lexer, Comma)
+  Ok(name);
+};
+
+let parseEnumTypeDefinition = (lexer: Lexer.t) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result name = parseName(lexer);
+  let%Result directives = parseDirectives(lexer, ~isConst=true);
+  let%Result values = parseEnumValuesDefinition(lexer);
+
+  /* TODO */
+
+  Ok(EnumTypeDefinition({ name, values, directives }))
+};
+
 let parseTypeDefinition = (lexer: Lexer.t) => {
   let%Result result = switch (lexer.curr.token) {
   | Name("scalar") => parseScalarTypeDefinition(lexer)
   | Name("type") => parseObjectTypeDefinition(lexer)
   | Name("interface") => parseInterfaceTypeDefinition(lexer)
-  /* | Name("union") => parseUnionTypeDefinition(lexer)
-  // | Name("enum") => parseEnumTypeDefinition(lexer)
-  // | Name("input") => parseInputObjectTypeDefinition(lexer) */
+  /* | Name("union") => parseUnionTypeDefinition(lexer) */
+  | Name("enum") => parseEnumTypeDefinition(lexer)
+  /* | Name("input") => parseInputObjectTypeDefinition(lexer) */
   | _ => unexpected(lexer)
   };
 

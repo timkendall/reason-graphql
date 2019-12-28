@@ -134,6 +134,17 @@ let printFieldDefinition = ({name, arguments, directives, typ}) =>
 let printFieldsDefinition = fieldsDef =>
   fieldsDef |> Belt.List.map(_, printFieldDefinition) |> block;
 
+let printEnumValueDefinition = (value) =>
+  join(
+    [
+      value
+    ],
+    "",
+  );
+
+
+let printEnumValuesDefinition = values =>
+  values |> Belt.List.map(_, printEnumValueDefinition) |> block;
 
 
 let printSchemaDef = ({ operationTypes, directives }) => {
@@ -213,13 +224,25 @@ let printInterfaceTypeDef = ({ name, fields, directives }: interfaceTypeDefiniti
   ], " ");
 };
 
+let printEnumTypeDef = ({ name, values, directives }) => {
+  let directivesString = printDirectives(directives);
+  let valuesString = printEnumValuesDefinition(values);
+  
+  join([
+    "enum",
+    name,
+    directivesString,
+    valuesString,
+  ], " ");
+};
+
 let printTypeDef = (typeDef) => {
   switch(typeDef) {
   | ScalarTypeDefinition(string) => "scalar " ++ string
   | ObjectTypeDefinition(objectTypeDefinition) => printObjectTypeDef(objectTypeDefinition)
   | InterfaceTypeDefinition(interfaceTypeDefinition) => printInterfaceTypeDef(interfaceTypeDefinition)
   | UnionTypeDefinition(unionTypeDefinition) => "TODO"
-  | EnumTypeDefinition(enumTypeDefintion) => "TODO"
+  | EnumTypeDefinition(enumTypeDefintion) => printEnumTypeDef(enumTypeDefintion)
   | InputObjectTypeDefinition(inputObjectTypeDefinition) => "TODO"
   };
 };
