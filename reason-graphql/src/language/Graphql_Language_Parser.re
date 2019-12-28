@@ -436,10 +436,21 @@ let parseInputValueDefinition = (lexer: Lexer.t): result(inputValueDefinition) =
   let%Result name = parseName(lexer);
   let%Result _ = expect(lexer, Colon);
   let%Result typ = parseTypeReference(lexer);
+
+  let%Result hasDefaultValue = skip(lexer, Equals);
   
+  let%Result defaultValue = {
+    if (hasDefaultValue) {
+      let%Result value = parseValueLiteral(lexer, ~isConst=true);
+      Ok(Some(value));
+    } else {
+      Ok(None);
+    }
+  }
+
   /* let%Result directives = parseDirectives(lexer, ~isConst=true); */
 
-  Ok({ name, typ, defaultValue: None });
+  Ok({ name, typ, defaultValue });
 };
 
 let parseInputValueDefinitions = (lexer: Lexer.t) =>

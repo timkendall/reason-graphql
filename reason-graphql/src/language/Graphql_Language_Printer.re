@@ -163,8 +163,15 @@ let printDirectiveLocation = (location): string => {
   };
 };
 
-let printDirectiveDef = ({ name, arguments, locations }) => {
-  let printableArgs = Belt.List.map(arguments, ({ name, typ, defaultValue }) => name ++ ": " ++ printType(typ) );
+let printDirectiveDef = ({ name, arguments, repeatable, locations }) => {
+  let printableArgs = Belt.List.map(arguments, 
+    ({ name, typ, defaultValue }) => {
+      let defaultString = defaultValue 
+        -> Belt.Option.map(_, value => " = " ++ printValue(value))
+        -> Belt.Option.getWithDefault(_, "");
+
+      name ++ ": " ++ printType(typ) ++ defaultString;
+  });
   let printableLocations = locations -> Belt.List.map(_, printDirectiveLocation);
   
   join(
@@ -173,6 +180,7 @@ let printDirectiveDef = ({ name, arguments, locations }) => {
       "@",
       name, 
       wrap("(", join(printableArgs, ","), ")"),
+      repeatable ? " repeatable" : "",
       " on ",
       join(printableLocations, " | "),
     ],

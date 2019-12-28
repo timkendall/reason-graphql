@@ -130,7 +130,7 @@ and fieldDefinition = {
 and inputValueDefinition = {
   name: string,
   typ: typeReference,
-  defaultValue: option(constValue),
+  defaultValue: option(value),
 }
 
 and interfaceTypeDefinition = {
