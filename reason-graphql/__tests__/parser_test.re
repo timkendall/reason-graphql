@@ -13,7 +13,7 @@ describe("Parse and print a graphql schema", () => {
 
     directive @example(
       sweet: Boolean!
-    ) on OBJECT 
+    ) repeatable on OBJECT | FIELD_DEFINITION
 
     scalar DateTime
 

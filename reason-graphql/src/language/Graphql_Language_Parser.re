@@ -21,6 +21,12 @@ let expect = (lexer: Lexer.t, token: Lexer.token) =>
   | currToken when currToken == token => Lexer.advance(lexer)
   | _ => expectedError(lexer, token)
   };
+  
+let expectOptional = (lexer: Lexer.t, token: Lexer.token) =>
+  switch (expect(lexer, token)) {
+  | Ok(_) => true
+  | Error(_) => false
+  };
 
 let skip = (lexer: Lexer.t, skipToken: Lexer.token): result(bool) =>
   switch (lexer.curr.token) {
@@ -41,6 +47,11 @@ let expectKeyword = (lexer: Lexer.t, value: string): result(unit) => {
   } else {
     Ok();
   };
+};
+
+let expectOptionalKeyword = (lexer: Lexer.t, value: string): result(bool) => {
+  let%Result skipped = skipKeyword(lexer, value);
+  Ok(skipped);
 };
 
 let unexpected = (lexer: Lexer.t) => {
@@ -438,23 +449,64 @@ let parseInputValueDefinitions = (lexer: Lexer.t) =>
   };
 
 
+
+
+
+let rec parseDirectiveLocations = (lexer: Lexer.t, locations: list(directiveLocation)) => {
+  let%Result location = parseDirectiveLocation(lexer);
+  let%Result hasNext = skip(lexer, Pipe);
+
+  if (hasNext) {
+    parseDirectiveLocations(lexer, [location, ...locations]);
+  } else {
+    Ok([location, ...locations]);
+  };
+}
+
+and parseDirectiveLocation = (lexer: Lexer.t) => {
+  switch(parseName(lexer)) {
+    | Ok("QUERY") => Belt.Result.Ok(QUERY)
+    | Ok("MUTATION") => Ok(MUTATION)
+    | Ok("SUBSCRIPTION") => Ok(SUBSCRIPTION)
+    | Ok("FIELD") => Ok(FIELD)
+    | Ok("FRAGMENT_DEFINITION") => Ok(FRAGMENT_DEFINITION)
+    | Ok("FRAGMENT_SPREAD") => Ok(FRAGMENT_SPREAD)
+    | Ok("INLINE_FRAGMENT") => Ok(INLINE_FRAGMENT)
+    | Ok("SCHEMA") => Ok(SCHEMA)
+    | Ok("SCALAR") => Ok(SCALAR)
+    | Ok("OBJECT") => Ok(OBJECT)
+    | Ok("FIELD_DEFINITION") => Ok(FIELD_DEFINITION)
+    | Ok("ARGUMENT_DEFINITION") => Ok(ARGUMENT_DEFINITION)
+    | Ok("INTERFACE") => Ok(INTERFACE)
+    | Ok("UNION") => Ok(UNION)
+    | Ok("ENUM") => Ok(ENUM)
+    | Ok("ENUM_VALUE") => Ok(ENUM_VALUE)
+    | Ok("INPUT_OBJECT") => Ok(INPUT_OBJECT)
+    | Ok("INPUT_FIELD_DEFINITION") => Ok(INPUT_FIELD_DEFINITION)
+    | _ => unexpected(lexer)
+  };
+};
+
+
+
 let parseDirectiveDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result _ = expect(lexer, At);
   let%Result name = parseName(lexer);
   let%Result arguments = parseInputValueDefinitions(lexer);
-
+  
+  let%Result repeatable = expectOptionalKeyword(lexer, "repeatable");
   let%Result _ = expectKeyword(lexer, "on");
-  let%Result location = switch(parseName(lexer)) {
-    | Ok("OBJECT") => Ok(OBJECT)
-    | _ => unexpected(lexer)
-  };
+  
+  /* Optional leading pipe */
+  let _ = expectOptional(lexer, Pipe);
+  let%Result locations = parseDirectiveLocations(lexer, []) -> Belt.Result.map(_, Belt.List.reverse);
 
   Ok(DirectiveDefinitionNode({
     name, 
-    repeatable: false, 
+    repeatable, 
     arguments, 
-    locations: [location]
+    locations,
   }));
 };
 
