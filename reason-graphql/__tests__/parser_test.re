@@ -11,6 +11,10 @@ describe("Parse and print a graphql schema", () => {
       subscription: Subscription
     }
 
+    directive @example(
+      sweet: Boolean!
+    ) on OBJECT 
+
     scalar DateTime
 
     interface Node {
@@ -29,13 +33,13 @@ describe("Parse and print a graphql schema", () => {
 
   test("should parse schema correctly", () => {
     let maybeDocument = Parser.parse(schema);
-
+    Js.log(maybeDocument);
     let out = maybeDocument->Belt.Result.getExn->Printer.print;
     Js.log(out);
     
     expect(Belt.Result.isOk(maybeDocument)) |> toBe(true);
 
-    // expect(out) |> toBe(schema); TODO Some whitespace formatting issues
+    /* expect(out) |> toBe(schema); TODO Some whitespace formatting issues */
   });
 });
 

@@ -95,7 +95,10 @@ and typeSystemDefinition =
   | TypeExtension(typeExtensionDefinition)
   | DirectiveDefinitionNode(directiveDefinition)
 
-and schemaDefinition = {operationTypes: list(operationTypeDefinition) }
+and schemaDefinition = {
+  operationTypes: list(operationTypeDefinition),
+  directives: list(directive),
+}
 
 and operationTypeDefinition = {
   typ: string,
@@ -132,8 +135,8 @@ and inputValueDefinition = {
 
 and interfaceTypeDefinition = {
   name: string,
-  fields: list(fieldDefinition),
   directives: list(directive),
+  fields: list(fieldDefinition),
 }
 
 and unionTypeDefinition = {
@@ -159,4 +162,26 @@ and typeExtensionDefinition = {definition: objectTypeDefinition}
 and directiveDefinition = {
   name: string,
   arguments: list(inputValueDefinition),
-};
+  repeatable: bool,
+  locations: list(directiveLocation),
+}
+
+and directiveLocation = 
+  | QUERY
+  | MUTATION
+  | SUBSCRIPTION
+  | FIELD
+  | FRAGMENT_DEFINITION
+  | FRAGMENT_SPREAD
+  | INLINE_FRAGMENT
+  | SCHEMA
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | INTERFACE
+  | UNION
+  | ENUM
+  | ENUM_VALUE
+  | INPUT_OBJECT
+  | INPUT_FIELD_DEFINITION;

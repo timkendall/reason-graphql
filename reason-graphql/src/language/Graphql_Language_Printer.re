@@ -121,7 +121,7 @@ let printOperationDef =
 let printFieldDefinition = ({name, arguments, directives, typ}) =>
   join(
     [
-      // TODO Arguments printAlias(alias) ++ name ++ wrap("(", printArguments(arguments), ")"),
+      /*name ++ " " ++ wrap("(", printArguments(arguments), ")"),*/
       name,
       ": ",
       printType(typ),
@@ -136,35 +136,93 @@ let printFieldsDefinition = fieldsDef =>
 
 
 
-let printTypeSystemDef = (typeSystemDef) => {
-  let defTypeString = switch(typeSystemDef) {
-    | TypeDefinition(ObjectTypeDefinition(_)) => "type"
-    | _ => "NOT IMPLEMENTED"
-  };
+let printSchemaDef = ({ operationTypes, directives }) => {
+  "";
+};
 
-  let defNameString = switch(typeSystemDef) {
-    | TypeDefinition(ObjectTypeDefinition({ name })) => name
-    | _ => "NOT IMPLEMENTED"
+let printDirectiveLocation = (location): string => {
+  switch(location) {
+    | QUERY => "QUERY"
+    | MUTATION => "MUTATION"
+    | SUBSCRIPTION => "SUBSCRIPTION"
+    | FIELD => "FIELD"
+    | FRAGMENT_DEFINITION => "FRAGMENT_DEFINITION"
+    | FRAGMENT_SPREAD => "FRAGMENT_SPREAD"
+    | INLINE_FRAGMENT => "INLINE_FRAGMENT"
+    | SCHEMA => "SCHEMA"
+    | SCALAR => "SCALAR"
+    | OBJECT => "OBJECT"
+    | FIELD_DEFINITION => "FIELD_DEFINITION"
+    | ARGUMENT_DEFINITION => "ARGUMENT_DEFINITION"
+    | INTERFACE => "INTERFACE"
+    | UNION => "UNION"
+    | ENUM => "ENUM"
+    | ENUM_VALUE => "ENUM_VALUE"
+    | INPUT_OBJECT => "INPUT_OBJECT"
+    | INPUT_FIELD_DEFINITION => "INPUT_FIELD_DEFINITION"
   };
+};
 
-  let directivesString = switch(typeSystemDef) {
-    | TypeDefinition(ObjectTypeDefinition({ directives })) => printDirectives(directives)
-    | _ => ""
-  };
+let printDirectiveDef = ({ name, arguments, locations }) => {
+  let printableArgs = Belt.List.map(arguments, ({ name, typ, defaultValue }) => name ++ ": " ++ printType(typ) );
+  let printableLocations = locations -> Belt.List.map(_, printDirectiveLocation);
+  
+  join(
+    [
+      "directive ",
+      "@",
+      name, 
+      wrap("(", join(printableArgs, ","), ")"),
+      " on ",
+      join(printableLocations, " | "),
+    ],
+    ""
+  );
+};
 
-  let fieldDefsString = switch(typeSystemDef) {
-    | TypeDefinition(ObjectTypeDefinition({ fields })) => Some(printFieldsDefinition(fields))
-    | _ => None
-  };
- 
- // TODO
+let printObjectTypeDef = ({ name, directives, interfaces, fields }) => {
+  let directivesString = printDirectives(directives);
+  /* TODO interfaces */
+  let fieldDefsString = printFieldsDefinition(fields);
 
   join([
-    defTypeString,
-    defNameString,
+    "type",
+    name,
     directivesString,
-    Belt.Option.getWithDefault(fieldDefsString, ""),
+    fieldDefsString,
   ], " ");
+};
+
+let printInterfaceTypeDef = ({ name, fields, directives }: interfaceTypeDefinition) => {
+  let directivesString = printDirectives(directives);
+  let fieldDefsString = printFieldsDefinition(fields);
+
+  join([
+    "interface",
+    name,
+    directivesString,
+    fieldDefsString,
+  ], " ");
+};
+
+let printTypeDef = (typeDef) => {
+  switch(typeDef) {
+  | ScalarTypeDefinition(string) => "scalar " ++ string
+  | ObjectTypeDefinition(objectTypeDefinition) => printObjectTypeDef(objectTypeDefinition)
+  | InterfaceTypeDefinition(interfaceTypeDefinition) => printInterfaceTypeDef(interfaceTypeDefinition)
+  | UnionTypeDefinition(unionTypeDefinition) => "TODO"
+  | EnumTypeDefinition(enumTypeDefintion) => "TODO"
+  | InputObjectTypeDefinition(inputObjectTypeDefinition) => "TODO"
+  };
+};
+
+let printTypeSystemDef = (typeSystemDef) => {
+  switch(typeSystemDef) {
+  | SchemaDefinition(schemaDefinition) => printSchemaDef(schemaDefinition)
+  | TypeDefinition(typeDefinition) => printTypeDef(typeDefinition)
+  | TypeExtension(typeExtensionDefinition) => "Not Implemented"
+  | DirectiveDefinitionNode(directiveDefinition) => printDirectiveDef(directiveDefinition)
+  };
 };
 
 let printFragmentDef = ({name, typeCondition, directives, selectionSet}) =>
