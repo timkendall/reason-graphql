@@ -406,15 +406,34 @@ let parseInterfaceTypeDefinition = (lexer: Lexer.t) => {
   Ok(InterfaceTypeDefinition({ name, directives, fields }));
 };
 
+let rec parseImplementsInterfaces = (lexer: Lexer.t, interfaces: list(string)) => {
+  let%Result hasImplementation = expectOptionalKeyword(lexer, "implements");
+
+  if (Belt.List.length(interfaces) > 0 || hasImplementation) {
+    /* Optional leading ampersand */
+    let _ = expectOptional(lexer, Amp);
+    let%Result name = parseName(lexer);
+
+    /* Multiple implementations */
+    if (expectOptional(lexer, Amp)) {
+      parseImplementsInterfaces(lexer, [ name, ...interfaces ]);
+    } else {
+      Ok([ name, ...interfaces ]);
+    }
+  } else {
+    Ok(interfaces);
+  }
+};
+
 let parseObjectTypeDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result name = parseName(lexer);
+  let%Result interfaces = parseImplementsInterfaces(lexer, []) 
+    -> Belt.Result.map(_, Belt.List.reverse);
   let%Result directives = parseDirectives(lexer, ~isConst=false);
   let%Result fields = parseFieldsDefinition(lexer);
 
-  /* TODO Parse `implements` interface */
-
-  Ok(ObjectTypeDefinition({ name, interfaces: [], directives, fields }));
+  Ok(ObjectTypeDefinition({ name, interfaces, directives, fields }));
 };
 
 
@@ -511,8 +530,6 @@ and parseDirectiveLocation = (lexer: Lexer.t) => {
   };
 };
 
-
-
 let parseDirectiveDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result _ = expect(lexer, At);
@@ -551,8 +568,6 @@ let parseEnumTypeDefinition = (lexer: Lexer.t) => {
   let%Result name = parseName(lexer);
   let%Result directives = parseDirectives(lexer, ~isConst=true);
   let%Result values = parseEnumValuesDefinition(lexer);
-
-  /* TODO */
 
   Ok(EnumTypeDefinition({ name, values, directives }))
 };

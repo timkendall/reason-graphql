@@ -22,6 +22,11 @@ describe("Parse and print a graphql schema", () => {
       id: ID!
     }
 
+    interface Timestamps {
+      createdAt: DateTime!
+      updatedAt: DateTime!
+    }
+
     enum Gender {
       MALE
       FEMALE
@@ -32,7 +37,7 @@ describe("Parse and print a graphql schema", () => {
       bar: Float
     }
 
-    type User @example {
+    type User implements Node & Timestamps @example {
       id: ID! @example(sweet: true)
       firstName: String!
       lastName: String!
@@ -41,11 +46,15 @@ describe("Parse and print a graphql schema", () => {
       updatedAt: DateTime!
     }
 
-    type Admin {
+    type Admin implements Entity {
       id: ID!
       badgeNumber: Int!
       createdAt: DateTime!
       updatedAt: DateTime!
+    }
+
+    type Foo {
+      bar: String!
     }
 
     union Person = User | Admin @test

@@ -203,12 +203,13 @@ let printDirectiveDef = ({ name, arguments, repeatable, locations }) => {
 
 let printObjectTypeDef = ({ name, directives, interfaces, fields }) => {
   let directivesString = printDirectives(directives);
-  /* TODO interfaces */
+  let interfacesString = Belt.List.length(interfaces) > 0 ? "implements " ++ join(interfaces, " & ") : "";
   let fieldDefsString = printFieldsDefinition(fields);
 
   join([
     "type",
     name,
+    interfacesString,
     directivesString,
     fieldDefsString,
   ], " ");
