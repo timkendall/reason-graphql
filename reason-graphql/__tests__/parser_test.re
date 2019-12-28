@@ -5,8 +5,20 @@ describe("Parse and print a graphql schema", () => {
   open Expect;
 
   let schema = {|
+    schema {
+      query: Query
+      mutation: Mutation
+      subscription: Subscription
+    }
+
+    scalar DateTime
+
+    interface Node {
+      id: ID!
+    }
+
     type User @example {
-      id: ID! @example
+      id: ID! @example(sweet: true)
       firstName: String!
       lastName: String!
       nicknames: [String!]

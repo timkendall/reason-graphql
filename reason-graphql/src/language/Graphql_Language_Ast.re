@@ -95,7 +95,7 @@ and typeSystemDefinition =
   | TypeExtension(typeExtensionDefinition)
   | DirectiveDefinitionNode(directiveDefinition)
 
-and schemaDefinition = {operationTypes: operationTypeDefinition}
+and schemaDefinition = {operationTypes: list(operationTypeDefinition) }
 
 and operationTypeDefinition = {
   typ: string,

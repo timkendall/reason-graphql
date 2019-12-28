@@ -365,6 +365,30 @@ and parseFieldDefinition = (lexer: Lexer.t) => {
   Ok({ name, arguments, directives, typ });
 };
 
+let parseSchemaDefinition = (lexer: Lexer.t): result(schemaDefinition) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result directives = parseDirectives(lexer, ~isConst=false);
+  
+  // TODO
+  let operationTypes = [
+    { 
+      typ: "Query",
+      operation: Query,
+    }
+  ];
+
+  Ok(SchemaDefinition({ operationTypes }));
+};
+
+let parseInterfaceTypeDefinition = (lexer: Lexer.t) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result name = parseName(lexer);
+  let%Result directives = parseDirectives(lexer, ~isConst=false);
+  let%Result fields = parseFieldsDefinition(lexer);
+
+  Ok(InterfaceTypeDefinition({ name, directives, fields }));
+};
+
 let parseObjectTypeDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result name = parseName(lexer);
@@ -376,16 +400,27 @@ let parseObjectTypeDefinition = (lexer: Lexer.t) => {
   Ok(ObjectTypeDefinition({ name, interfaces: [], directives, fields }));
 };
 
+let parseScalarTypeDefinition = (lexer: Lexer.t) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result name = parseName(lexer);
+  
+  // let%Result directives = parseDirectives(lexer, ~isConst=false);
+  // TODO Parse `implements` interface
+
+  //Ok(ScalarTypeDefinition({ name, directives }));
+  Ok(ScalarTypeDefinition(name));
+};
+
 // parseSchemaDefinition
 // parseDirectiveDefinition
 // ..
 
 let parseTypeDefinition = (lexer: Lexer.t): result(typeDefinition) => {
   switch (lexer.curr.token) {
-  // | Name("schema") => parseSchemaDefinition(lexer)
-  // | Name("scalar") => parseScalarTypeDefinition(lexer)
+  | Name("schema") => parseSchemaDefinition(lexer)
+  | Name("scalar") => parseScalarTypeDefinition(lexer)
   | Name("type") => parseObjectTypeDefinition(lexer)
-  // | Name("interface") => parseInterfaceTypeDefinition(lexer)
+  | Name("interface") => parseInterfaceTypeDefinition(lexer)
   // | Name("union") => parseUnionTypeDefinition(lexer)
   // | Name("enum") => parseEnumTypeDefinition(lexer)
   // | Name("input") => parseInputObjectTypeDefinition(lexer)
