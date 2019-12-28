@@ -437,14 +437,10 @@ let parseObjectTypeDefinition = (lexer: Lexer.t) => {
 };
 
 
-
 let parseScalarTypeDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
   let%Result name = parseName(lexer);
-  
-  /* let%Result directives = parseDirectives(lexer, ~isConst=false);
-   TODO Parse `implements` interface
-   Ok(ScalarTypeDefinition({ name, directives })); */
+  /* let%Result directives = parseDirectives(lexer, ~isConst=false); */
 
   Ok(ScalarTypeDefinition(name));
 };
