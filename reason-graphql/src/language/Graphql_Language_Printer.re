@@ -268,12 +268,25 @@ let printInputObjectTypeDef = ({ name, directives, fields }) => {
   ], " ");
 };
 
+let printUnionTypeDef = ({ name, types, directives }) => {
+  let directivesString = printDirectives(directives);
+  let typesString = join(types, " | ");
+
+  join([
+    "union",
+    name,
+    "=",
+    typesString,
+    directivesString,
+  ], " ");
+};
+
 let printTypeDef = (typeDef) => {
   switch(typeDef) {
   | ScalarTypeDefinition(string) => "scalar " ++ string
   | ObjectTypeDefinition(objectTypeDefinition) => printObjectTypeDef(objectTypeDefinition)
   | InterfaceTypeDefinition(interfaceTypeDefinition) => printInterfaceTypeDef(interfaceTypeDefinition)
-  | UnionTypeDefinition(unionTypeDefinition) => "TODO"
+  | UnionTypeDefinition(unionTypeDefinition) => printUnionTypeDef(unionTypeDefinition)
   | EnumTypeDefinition(enumTypeDefintion) => printEnumTypeDef(enumTypeDefintion)
   | InputObjectTypeDefinition(inputObjectTypeDefinition) => printInputObjectTypeDef(inputObjectTypeDefinition)
   };

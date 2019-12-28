@@ -40,6 +40,15 @@ describe("Parse and print a graphql schema", () => {
       createdAt: DateTime!
       updatedAt: DateTime!
     }
+
+    type Admin {
+      id: ID!
+      badgeNumber: Int!
+      createdAt: DateTime!
+      updatedAt: DateTime!
+    }
+
+    union Person = User | Admin @test
   |};
 
   test("should parse schema correctly", () => {

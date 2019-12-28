@@ -430,9 +430,6 @@ let parseScalarTypeDefinition = (lexer: Lexer.t) => {
   Ok(ScalarTypeDefinition(name));
 };
 
-/* parseSchemaDefinition
-// parseDirectiveDefinition
-// .. */
 
 let parseInputValueDefinition = (lexer: Lexer.t): result(inputValueDefinition) => {
   let%Result name = parseName(lexer);
@@ -560,12 +557,34 @@ let parseEnumTypeDefinition = (lexer: Lexer.t) => {
   Ok(EnumTypeDefinition({ name, values, directives }))
 };
 
+
+let rec parseUnionMemberTypes = (lexer: Lexer.t, types: list(string)) => {
+  let%Result _type = parseName(lexer);
+  let%Result hasNext = skip(lexer, Pipe);
+
+  if (hasNext) {
+    parseUnionMemberTypes(lexer, [_type, ...types]);
+  } else {
+    Ok([_type, ...types]);
+  };
+};
+
+let parseUnionTypeDefinition = (lexer: Lexer.t) => {
+  let%Result _ = Lexer.advance(lexer);
+  let%Result name = parseName(lexer);
+  let%Result _ = expect(lexer, Equals);
+  let%Result types = parseUnionMemberTypes(lexer, []);
+  let%Result directives = parseDirectives(lexer, ~isConst=true);
+
+  Ok(UnionTypeDefinition({ name, types, directives }));
+};
+
 let parseTypeDefinition = (lexer: Lexer.t) => {
   let%Result result = switch (lexer.curr.token) {
   | Name("scalar") => parseScalarTypeDefinition(lexer)
   | Name("type") => parseObjectTypeDefinition(lexer)
   | Name("interface") => parseInterfaceTypeDefinition(lexer)
-  /* | Name("union") => parseUnionTypeDefinition(lexer) */
+  | Name("union") => parseUnionTypeDefinition(lexer) 
   | Name("enum") => parseEnumTypeDefinition(lexer)
   | Name("input") => parseInputObjectTypeDefinition(lexer)
   | _ => unexpected(lexer)
