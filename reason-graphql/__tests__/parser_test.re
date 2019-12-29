@@ -11,6 +11,13 @@ describe("Parse and print a graphql schema", () => {
       subscription: Subscription
     }
 
+    type Query {
+      foo(bar: String! = "baz"): String
+      boop(baz: Float): Float
+      user: User
+    }
+
+    directive @simple on OBJECT
     directive @example(
       sweet: Boolean! = true
     ) repeatable on OBJECT | FIELD_DEFINITION

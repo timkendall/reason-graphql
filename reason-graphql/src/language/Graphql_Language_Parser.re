@@ -348,11 +348,21 @@ let parseFragmentDefinition = (lexer: Lexer.t) => {
 
 let parseArgumentDefinition = (lexer: Lexer.t): result(inputValueDefinition) => {
   let%Result name = parseName(lexer);
-  let%Result directives = parseDirectives(lexer, ~isConst=true);
   let%Result _ = expect(lexer, Colon);
   let%Result typ = parseTypeReference(lexer);
-  
-  Ok({name, typ, directives, defaultValue: None });
+  let%Result directives = parseDirectives(lexer, ~isConst=true);
+ 
+  let%Result hasDefaultValue = skip(lexer, Equals);
+  let%Result defaultValue = {
+    if (hasDefaultValue) {
+      let%Result value = parseValueLiteral(lexer, ~isConst=true);
+      Ok(Some(value));
+    } else {
+      Ok(None);
+    }
+  }
+
+  Ok({name, typ, directives, defaultValue });
 };
 
 let parseArgumentDefinitions = (lexer: Lexer.t) =>
@@ -368,8 +378,8 @@ let rec parseFieldsDefinition = (lexer: Lexer.t): result(list(fieldDefinition)) 
 
 and parseFieldDefinition = (lexer: Lexer.t) => {
   let%Result name = parseName(lexer);
-  let%Result _ = skip(lexer, Colon);
   let%Result arguments = parseArgumentDefinitions(lexer);
+  let%Result _ = skip(lexer, Colon);
   let%Result typ = parseTypeReference(lexer);
   let%Result directives = parseDirectives(lexer, ~isConst=false);
 

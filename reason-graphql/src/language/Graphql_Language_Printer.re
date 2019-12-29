@@ -44,6 +44,12 @@ let printArgument = ((name, value)) => name ++ ": " ++ printValue(value);
 let printArguments = (args: list((string, value))) =>
   args->Belt.List.map(printArgument)->join(", ");
 
+let printDefaultValue = (defaultValue) => {
+  defaultValue 
+    -> Belt.Option.map(_, value => " = " ++ printValue(value))
+    -> Belt.Option.getWithDefault(_, "");
+};
+
 let printDirective = ({name, arguments}: directive) =>
   "@" ++ name ++ wrap("(", printArguments(arguments), ")");
 
@@ -118,17 +124,22 @@ let printOperationDef =
   };
 };
 
-let printFieldDefinition = ({name, arguments, directives, typ}) =>
+let printFieldDefinition = ({name, arguments, directives, typ}) => {
+  let printableArgs = Belt.List.map(arguments, 
+    ({ name, typ, defaultValue }) => {
+      name ++ ": " ++ printType(typ) ++ printDefaultValue(defaultValue);
+  });
+
   join(
     [
-      /*name ++ " " ++ wrap("(", printArguments(arguments), ")"),*/
-      name,
+      name ++ wrap("(", join(printableArgs, ","), ")"),
       ": ",
       printType(typ),
       " " ++ printDirectives(directives),
     ],
     "",
   );
+};
 
 
 let printFieldsDefinition = fieldsDef =>
@@ -173,12 +184,6 @@ let printDirectiveLocation = (location): string => {
     | INPUT_FIELD_DEFINITION => "INPUT_FIELD_DEFINITION"
   };
 };
-
-let printDefaultValue = (defaultValue) => {
-  defaultValue 
-    -> Belt.Option.map(_, value => " = " ++ printValue(value))
-    -> Belt.Option.getWithDefault(_, "");
-}
 
 let printDirectiveDef = ({ name, arguments, repeatable, locations }) => {
   let printableArgs = Belt.List.map(arguments, 
