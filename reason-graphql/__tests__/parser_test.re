@@ -12,6 +12,7 @@ describe("Parse and print a graphql schema", () => {
     }
 
     type Query {
+      """Some spicy description"""
       foo(bar: String! = "baz"): String
       boop(baz: Float): Float
       user: User
@@ -60,8 +61,9 @@ describe("Parse and print a graphql schema", () => {
       updatedAt: DateTime!
     }
 
+    # Comments are supported
     type Foo {
-      bar: String!
+      bar: String! # here too!
     }
 
     union Person = User | Admin @test

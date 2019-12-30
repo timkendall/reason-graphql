@@ -346,6 +346,12 @@ let parseFragmentDefinition = (lexer: Lexer.t) => {
 
 /* Type System Definitions */
 
+let parseDescription =
+  fun
+  | ({curr: {token: Desc(value)}} as lexer: Lexer.t) =>
+    Lexer.advance(lexer)->Result.map(_ => Some(value))
+  | lexer => Ok(None);
+
 let parseArgumentDefinition = (lexer: Lexer.t): result(inputValueDefinition) => {
   let%Result name = parseName(lexer);
   let%Result _ = expect(lexer, Colon);
@@ -377,13 +383,14 @@ let rec parseFieldsDefinition = (lexer: Lexer.t): result(list(fieldDefinition)) 
 }
 
 and parseFieldDefinition = (lexer: Lexer.t) => {
+  let%Result description = parseDescription(lexer);
   let%Result name = parseName(lexer);
   let%Result arguments = parseArgumentDefinitions(lexer);
   let%Result _ = skip(lexer, Colon);
   let%Result typ = parseTypeReference(lexer);
   let%Result directives = parseDirectives(lexer, ~isConst=false);
 
-  Ok({ name, arguments, directives, typ });
+  Ok({ name, description, arguments, directives, typ });
 };
 
 let parseOperationTypeDefinition = (lexer: Lexer.t): result(operationTypeDefinition) => {
@@ -487,8 +494,6 @@ let parseInputObjectDefinitions = (lexer: Lexer.t) =>
   | BraceOpen => many(lexer, BraceOpen, parseInputValueDefinition, BraceClose)
   | _ => Ok([])
   };
-
-
 
 let parseInputObjectTypeDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);

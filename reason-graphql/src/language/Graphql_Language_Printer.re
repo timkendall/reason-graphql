@@ -127,7 +127,12 @@ let printOperationDef =
   };
 };
 
-let printFieldDefinition = ({name, arguments, directives, typ}) => {
+let printFieldDefinition = ({name, description, arguments, directives, typ}) => {
+  let printableDesc = switch(description) {
+    | Some(desc) => "\"\"\"" ++ desc ++ "\"\"\"\n"
+    | None => ""
+  };
+
   let printableArgs = Belt.List.map(arguments, 
     ({ name, typ, defaultValue }) => {
       name ++ ": " ++ printType(typ) ++ printDefaultValue(defaultValue);
@@ -135,6 +140,7 @@ let printFieldDefinition = ({name, arguments, directives, typ}) => {
 
   join(
     [
+      printableDesc,
       name ++ wrap("(", join(printableArgs, ","), ")"),
       ": ",
       printType(typ),

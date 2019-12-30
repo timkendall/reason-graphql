@@ -121,6 +121,7 @@ and objectTypeDefinition = {
 }
 
 and fieldDefinition = {
+  description: option(string),
   name: string,
   arguments: list(inputValueDefinition),
   directives: list(directive),

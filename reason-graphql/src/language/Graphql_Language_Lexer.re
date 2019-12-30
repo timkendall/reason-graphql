@@ -34,7 +34,8 @@ type token =
   | Int(string)
   | Float(string)
   | String(string)
-  | Comment(string);
+  | Comment(string)
+  | Desc(string);
 
 let tokenKind =
   fun
@@ -58,7 +59,8 @@ let tokenKind =
   | Int(_) => "Int"
   | Float(_) => "Float"
   | String(_) => "String"
-  | Comment(_) => "Comment";
+  | Comment(_) => "Comment"
+  | Desc(_) => "\"\"\"";
 
 type tokenResult = {
   token,
@@ -186,6 +188,40 @@ let readComment = (source, ~start, ~line, ~column): tokenResult => {
       start,
       line,
       end_: position,
+      column,
+    },
+  };
+};
+
+let readDescription = (source, ~start, ~line, ~column): tokenResult => {
+  let rec aux = position =>
+    if (position > String.length(source)) {
+      position;
+    } else {
+      switch (source.[position]) {
+      | '\r'
+      | '"' => {
+        if (isChar(source, position + 1, '"')
+          && isChar(source, position + 2, '"')) {
+            /* End of description */
+            position;
+        } else {
+          aux(position + 1);
+        }
+      }
+      | _ => aux(position + 1)
+      };
+    };
+
+  let position = aux(start);
+  let end_ = position + 3;
+
+  {
+    token: Desc(String.sub(source, start, position - start)),
+    location: {
+      start,
+      line,
+      end_,
       column,
     },
   };
@@ -452,6 +488,14 @@ let readToken = (lexer, from): result(tokenResult) => {
         syntaxError(
           "Unexpected Character" ++ String.make(1, source.[position + 1]),
         );
+      }
+    | '"' =>
+      if (isChar(source, position + 1, '"')
+          && isChar(source, position + 2, '"')) {
+        Ok(readDescription(source, ~start=position+3, ~line, ~column));
+      } else {
+        /* Not sure if this is totally correct */
+        readString(source, ~start=position, ~line, ~column);
       }
     | 'A'..'Z'
     | 'a'..'z'
