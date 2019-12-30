@@ -584,13 +584,13 @@ let parseEnumTypeDefinition = (lexer: Lexer.t) => {
 
 
 let rec parseUnionMemberTypes = (lexer: Lexer.t, types: list(string)) => {
-  let%Result _type = parseName(lexer);
+  let%Result type_ = parseName(lexer);
   let%Result hasNext = skip(lexer, Pipe);
 
   if (hasNext) {
-    parseUnionMemberTypes(lexer, [_type, ...types]);
+    parseUnionMemberTypes(lexer, [type_, ...types]);
   } else {
-    Ok([_type, ...types]);
+    Ok([type_, ...types]);
   };
 };
 
