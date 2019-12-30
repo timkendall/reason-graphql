@@ -72,9 +72,70 @@ describe("Parse and print a graphql schema", () => {
   test("should parse schema correctly", () => {
     let maybeDocument = Parser.parse(schema);
     let out = maybeDocument->Belt.Result.getExn->Printer.print;
-    
-    /* expect(out) |> toBe(schema); TODO Some whitespace formatting issues */
-    expect(Belt.Result.isOk(maybeDocument)) |> toBe(true);
+
+    let schema = {|schema @bingo {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type Query {
+  """Some spicy description"""
+  foo(bar: String! = "baz"): String
+  boop(baz: Float): Float
+  user: User
+}
+
+directive @simple on OBJECT
+
+directive @example(sweet: Boolean! = true) repeatable on OBJECT | FIELD_DEFINITION
+
+scalar DateTime
+
+scalar _Any
+
+interface Node {
+  id: ID!
+}
+
+interface Timestamps {
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+input MyInput @bingo {
+  foo: String! @bingo
+  bar: Float
+}
+
+type User implements Node & Timestamps @example {
+  id: ID! @example(sweet: true)
+  firstName: String!
+  lastName: String!
+  nicknames: [String!]
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Admin implements Entity {
+  id: ID!
+  badgeNumber: Int!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Foo {
+  bar: String!
+}
+
+union Person = Admin | User @test|};
+ 
+    expect(out) |> toBe(schema);
   });
 });
 

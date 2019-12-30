@@ -144,7 +144,7 @@ let printFieldDefinition = ({name, description, arguments, directives, typ}) => 
       name ++ wrap("(", join(printableArgs, ","), ")"),
       ": ",
       printType(typ),
-      " " ++ printDirectives(directives),
+      Belt.List.length(directives) == 0 ? "" : " " ++ printDirectives(directives),
     ],
     "",
   );
@@ -282,7 +282,7 @@ let printInputFieldDefinition = ({name, directives, typ, defaultValue }: inputVa
       ": ",
       printType(typ),
       printDefaultValue(defaultValue),
-      " " ++ printDirectives(directives),
+      Belt.List.length(directives) == 0 ? "" : " " ++ printDirectives(directives),
     ],
     "",
   );
