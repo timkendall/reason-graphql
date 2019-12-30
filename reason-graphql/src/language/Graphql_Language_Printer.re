@@ -278,7 +278,6 @@ let printEnumTypeDef = ({ name, values, directives }) => {
 let printInputFieldDefinition = ({name, directives, typ, defaultValue }: inputValueDefinition) =>
   join(
     [
-      /*name ++ " " ++ wrap("(", printArguments(arguments), ")"),*/
       name,
       ": ",
       printType(typ),
