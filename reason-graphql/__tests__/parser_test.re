@@ -5,7 +5,7 @@ describe("Parse and print a graphql schema", () => {
   open Expect;
 
   let schema = {|
-    schema {
+    schema @bingo {
       query: Query
       mutation: Mutation
       subscription: Subscription

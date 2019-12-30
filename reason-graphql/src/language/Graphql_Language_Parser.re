@@ -386,23 +386,22 @@ and parseFieldDefinition = (lexer: Lexer.t) => {
   Ok({ name, arguments, directives, typ });
 };
 
+let parseOperationTypeDefinition = (lexer: Lexer.t): result(operationTypeDefinition) => {
+  let%Result operation = parseOperationType(lexer);
+  let%Result _ = Lexer.advance(lexer);
+  let%Result _ = expect(lexer, Colon);
+  let%Result typ = parseName(lexer);
+
+  Ok({ operation, typ });
+};
+
+let parseOperationTypeDefinitions = (lexer: Lexer.t): result(list(operationTypeDefinition)) => 
+  many(lexer, BraceOpen, parseOperationTypeDefinition, BraceClose);
+
 let parseSchemaDefinition = (lexer: Lexer.t) => {
   let%Result _ = Lexer.advance(lexer);
-  let%Result directives = parseDirectives(lexer, ~isConst=false);
-  let%Result fields = parseFieldsDefinition(lexer);
-
-  /* let operationTypes = Belt.List.map(fields, (field) => {
-      let operation = switch (field.typ) {
-
-      };
-    }); */
-  
-  let operationTypes = [
-    { 
-      typ: "Query",
-      operation: Query,
-    },
-  ];
+  let%Result directives = parseDirectives(lexer, ~isConst=true);
+  let%Result operationTypes = parseOperationTypeDefinitions(lexer);
 
   Ok(SchemaDefinition({ operationTypes, directives }));
 };
@@ -626,20 +625,30 @@ let parseTypeSystemDefinition = (lexer: Lexer.t) => {
   Ok(TypeSystemDefinition(result));
 };
 
-/* Common */
-/* TODO Break out SDL parsing into parseTypeSystemDefinition */
+/* Type System Extension Definitions */
+/* TODO */
+
+/* Entry */
 
 let parseExecutableDefinition = (lexer: Lexer.t) =>
   switch (lexer.curr.token) {
   | Name("query" | "mutation" | "subscription")
   | BraceOpen => parseOperationDefinition(lexer)
-  | Name("schema" | "scalar" | "type" | "interface" | "union" | "enum" | "input" | "directive") => parseTypeSystemDefinition(lexer)
   | Name("fragment") => parseFragmentDefinition(lexer)
   | _ => unexpected(lexer)
   };
 
+let parseDefinition = (lexer: Lexer.t) =>
+  switch (lexer.curr.token) {
+  | Name("query" | "mutation" | "subscription" | "fragment")
+  | BraceOpen => parseExecutableDefinition(lexer)
+  | Name("schema" | "scalar" | "type" | "interface" | "union" | "enum" | "input" | "directive") => parseTypeSystemDefinition(lexer)
+  /*| Name("extend") => parseTypeSystemExtension(lexer)*/
+  | _ => unexpected(lexer)
+  };
+
 let parseDocument = (lexer: Lexer.t): result(document) => {
-  let%Result definitions = many(lexer, StartOfFile, parseExecutableDefinition, EndOfFile);
+  let%Result definitions = many(lexer, StartOfFile, parseDefinition, EndOfFile);
   Ok({definitions: definitions});
 };
 

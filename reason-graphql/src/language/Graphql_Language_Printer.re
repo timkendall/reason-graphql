@@ -102,14 +102,17 @@ and printInlineFragmentDefinition = ({typeCondition, selectionSet, directives}) 
     " ",
   );
 
+let printOperationType = (operationType) => {
+  switch (operationType) {
+  | Query => "query"
+  | Subscription => "subscription"
+  | Mutation => "mutation"
+  };
+};
+
 let printOperationDef =
     ({operationType, variableDefinition, directives, selectionSet} as operationDef) => {
-  let operationTypeStr =
-    switch (operationType) {
-    | Query => "query"
-    | Subscription => "subscription"
-    | Mutation => "mutation"
-    };
+  let operationTypeStr = printOperationType(operationType);
   let varDefs = "(" ++ printVariables(variableDefinition) ++ ")";
   let directives = printDirectives(directives);
   let selectionSet = printSelectionSet(selectionSet);
@@ -158,8 +161,30 @@ let printEnumValuesDefinition = values =>
   values |> Belt.List.map(_, printEnumValueDefinition) |> block;
 
 
+let printOperationTypeDef = ({ typ, operation }) => {
+  let operationTypeStr = printOperationType(operation);
+  join(
+    [
+      operationTypeStr,
+      ": ",
+      typ,
+    ],
+    "",
+  );
+};
+
+let printOperationTypeDefs = (operationTypes) => 
+  operationTypes |> Belt.List.map(_, printOperationTypeDef) |> block;
+
 let printSchemaDef = ({ operationTypes, directives }) => {
-  "";
+  let directivesString = printDirectives(directives);
+  let operationDefsString = printOperationTypeDefs(operationTypes);
+
+  join([
+    "schema",
+    directivesString,
+    operationDefsString,
+  ], " ");
 };
 
 let printDirectiveLocation = (location): string => {
