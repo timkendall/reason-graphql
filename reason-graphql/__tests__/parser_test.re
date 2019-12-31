@@ -67,10 +67,15 @@ describe("Parse and print a graphql schema", () => {
     }
 
     union Person = User | Admin @test
+
+    extend schema @example
   |};
 
   test("should parse schema correctly", () => {
     let maybeDocument = Parser.parse(schema);
+    
+    Js.log(maybeDocument);
+    
     let out = maybeDocument->Belt.Result.getExn->Printer.print;
 
     let schema = {|schema @bingo {
@@ -133,7 +138,9 @@ type Foo {
   bar: String!
 }
 
-union Person = Admin | User @test|};
+union Person = Admin | User @test
+
+extend schema @example|};
  
     expect(out) |> toBe(schema);
   });

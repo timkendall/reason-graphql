@@ -293,7 +293,6 @@ let printInputFieldsDefinition = (fieldsDef: list(inputValueDefinition)) =>
 
 let printInputObjectTypeDef = ({ name, directives, fields }) => {
   let directivesString = printDirectives(directives);
-  /* TODO interfaces */
   let fieldDefsString = printInputFieldsDefinition(fields);
 
   join([
@@ -336,6 +335,26 @@ let printTypeSystemDef = (typeSystemDef) => {
   };
 };
 
+
+let printSchemaExtension = ({ operationTypes, directives }: schemaExtension) => {
+  let directivesString = directives -> Belt.Option.map(_, printDirectives) -> Belt.Option.getWithDefault(_, "");
+  let operationDefsString = operationTypes -> Belt.Option.map(_, printOperationTypeDefs) -> Belt.Option.getWithDefault(_, "");
+
+  join([
+    "extend",
+    "schema",
+    directivesString,
+    operationDefsString,
+  ], " ");
+};
+
+let printTypeSystemExt = (typeSystemExt) => {
+  switch(typeSystemExt) {
+  | SchemaExtension(schemaExtension) => printSchemaExtension(schemaExtension)
+  | _ => "Not Implemented"
+  }
+}
+
 let printFragmentDef = ({name, typeCondition, directives, selectionSet}) =>
   "fragment "
   ++ name
@@ -350,7 +369,7 @@ let printDefinition = definition =>
   | TypeSystemDefinition(typeSystemDef) => printTypeSystemDef(typeSystemDef)
   | OperationDefinition(operationDef) => printOperationDef(operationDef)
   | FragmentDefinition(fragmentDef) => printFragmentDef(fragmentDef)
-  | TypeSystemExtension(_typeSystemExtension) => "Not Implemented"
+  | TypeSystemExtension(typeSystemExtension) => printTypeSystemExt(typeSystemExtension)
   };
 
 let print = ({definitions}: document) =>

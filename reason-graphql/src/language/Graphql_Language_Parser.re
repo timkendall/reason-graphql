@@ -350,7 +350,7 @@ let parseDescription =
   fun
   | ({curr: {token: Desc(value)}} as lexer: Lexer.t) =>
     Lexer.advance(lexer)->Result.map(_ => Some(value))
-  | lexer => Ok(None);
+  | _lexer => Ok(None);
 
 let parseArgumentDefinition = (lexer: Lexer.t): result(inputValueDefinition) => {
   let%Result name = parseName(lexer);
@@ -631,7 +631,25 @@ let parseTypeSystemDefinition = (lexer: Lexer.t) => {
 
 /* Type System Extension Definitions */
 
+let parseSchemaExtension = (lexer: Lexer.t) => {
+  let%Result _ = expectKeyword(lexer, "schema");
+
+  /* TODO If length is 0 or result is Error for both stop parsing */
+  
+  let directives = parseDirectives(lexer, ~isConst=true) 
+    |> Belt.Result.map(_, dirs => Some(dirs)) |> Belt.Result.getWithDefault(_, None);
+  let operationTypes = parseOperationTypeDefinitions(lexer) 
+    |> Belt.Result.map(_, dirs => Some(dirs)) |> Belt.Result.getWithDefault(_, None);
+
+  if (Belt.Option.isNone(directives) && Belt.Option.isNone(operationTypes)) {
+    unexpected(lexer);
+  } else {
+    Ok(TypeSystemExtension(SchemaExtension({ operationTypes, directives })));
+  }
+};
+
 let parseTypeSystemExtension = (lexer: Lexer.t) => {
+  let%Result _ = expectKeyword(lexer, "extend");
   /* Supported extensions: 
       - schema
       - scalar
@@ -641,6 +659,11 @@ let parseTypeSystemExtension = (lexer: Lexer.t) => {
       - enum
       - interface
   */
+  switch (lexer.curr.token) {
+  | Name("schema") => parseSchemaExtension(lexer)
+  // | Name("scalar" | "type" | "interface" | "union" | "enum" | "input") => parseTypeSystemDefinition(lexer)
+  | _ => unexpected(lexer)
+  };
 };
 
 /* Entry */
@@ -658,7 +681,7 @@ let parseDefinition = (lexer: Lexer.t) =>
   | Name("query" | "mutation" | "subscription" | "fragment")
   | BraceOpen => parseExecutableDefinition(lexer)
   | Name("schema" | "scalar" | "type" | "interface" | "union" | "enum" | "input" | "directive") => parseTypeSystemDefinition(lexer)
-  // | Name("extend") => parseTypeSystemExtension(lexer)
+  | Name("extend") => parseTypeSystemExtension(lexer)
   | _ => unexpected(lexer)
   };
 
