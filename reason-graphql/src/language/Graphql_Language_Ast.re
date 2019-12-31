@@ -26,6 +26,7 @@ and definition =
   | TypeSystemDefinition(typeSystemDefinition)
   | OperationDefinition(operationDefinition)
   | FragmentDefinition(fragmentDefinition)
+  | TypeSystemExtension(typeSystemExtension)
 
 and operationDefinition = {
   operationType,
@@ -92,8 +93,57 @@ and typeReference =
 and typeSystemDefinition =
   | SchemaDefinition(schemaDefinition)
   | TypeDefinition(typeDefinition)
-  | TypeExtension(typeExtensionDefinition)
   | DirectiveDefinitionNode(directiveDefinition)
+
+and typeSystemExtension =
+  | SchemaExtension(schemaExtension)
+  | ScalarTypeExtension(scalarTypeExtension)
+  | ObjectTypeExtension(objectTypeExtension)
+  | InterfaceTypeExtension(interfaceTypeExtension)
+  | UnionTypeExtension(unionTypeExtension)
+  | EnumTypeExtension(enumTypeExtension)
+  | InputObjectTypeExtension(inputObjectTypeExtension)
+
+and schemaExtension = {
+  operationTypes: option(list(operationTypeDefinition)),
+  directives: option(list(directive)),
+}
+
+and scalarTypeExtension = {
+  name: string,
+  directives: option(list(directive)),
+}
+
+and objectTypeExtension = {
+  name: string,
+  interfaces: option(list(string)),
+  directives: option(list(directive)),
+  fields: option(list(fieldDefinition)),
+}
+
+and interfaceTypeExtension = {
+  name: string,
+  directives: option(list(directive)),
+  fields: option(list(fieldDefinition)),
+}
+
+and unionTypeExtension = {
+  name: string,
+  types: option(list(string)),
+  directives: option(list(directive)),
+}
+
+and enumTypeExtension = {
+  name: string,
+  directives: option(list(directive)),
+  values: option(list(string)),
+}
+
+and inputObjectTypeExtension = {
+  name: string,
+  directives: option(list(directive)),
+  fields: option(list(inputValueDefinition)),
+}
 
 and schemaDefinition = {
   operationTypes: list(operationTypeDefinition),
@@ -110,7 +160,7 @@ and typeDefinition =
   | ObjectTypeDefinition(objectTypeDefinition)
   | InterfaceTypeDefinition(interfaceTypeDefinition)
   | UnionTypeDefinition(unionTypeDefinition)
-  | EnumTypeDefinition(enumTypeDefintion)
+  | EnumTypeDefinition(enumTypeDefinition)
   | InputObjectTypeDefinition(inputObjectTypeDefinition)
 
 and objectTypeDefinition = {
@@ -147,7 +197,7 @@ and unionTypeDefinition = {
   directives: list(directive),
 }
 
-and enumTypeDefintion = {
+and enumTypeDefinition = {
   name: string,
   directives: list(directive),
   values: list(string),

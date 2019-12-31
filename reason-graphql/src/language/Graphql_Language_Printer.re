@@ -332,7 +332,6 @@ let printTypeSystemDef = (typeSystemDef) => {
   switch(typeSystemDef) {
   | SchemaDefinition(schemaDefinition) => printSchemaDef(schemaDefinition)
   | TypeDefinition(typeDefinition) => printTypeDef(typeDefinition)
-  | TypeExtension(typeExtensionDefinition) => "Not Implemented"
   | DirectiveDefinitionNode(directiveDefinition) => printDirectiveDef(directiveDefinition)
   };
 };
@@ -351,6 +350,7 @@ let printDefinition = definition =>
   | TypeSystemDefinition(typeSystemDef) => printTypeSystemDef(typeSystemDef)
   | OperationDefinition(operationDef) => printOperationDef(operationDef)
   | FragmentDefinition(fragmentDef) => printFragmentDef(fragmentDef)
+  | TypeSystemExtension(_typeSystemExtension) => "Not Implemented"
   };
 
 let print = ({definitions}: document) =>

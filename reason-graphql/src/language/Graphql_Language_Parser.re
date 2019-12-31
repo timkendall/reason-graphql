@@ -623,7 +623,6 @@ let parseTypeSystemDefinition = (lexer: Lexer.t) => {
   | Name("schema") => parseSchemaDefinition(lexer)
   | Name("scalar" | "type" | "interface" | "union" | "enum" | "input") => parseTypeDefinition(lexer)
   | Name("directive") => parseDirectiveDefinition(lexer)
-  /* TODO `extend` */
   | _ => unexpected(lexer)
   };
   
@@ -631,7 +630,18 @@ let parseTypeSystemDefinition = (lexer: Lexer.t) => {
 };
 
 /* Type System Extension Definitions */
-/* TODO */
+
+let parseTypeSystemExtension = (lexer: Lexer.t) => {
+  /* Supported extensions: 
+      - schema
+      - scalar
+      - type
+      - interface
+      - union
+      - enum
+      - interface
+  */
+};
 
 /* Entry */
 
@@ -648,7 +658,7 @@ let parseDefinition = (lexer: Lexer.t) =>
   | Name("query" | "mutation" | "subscription" | "fragment")
   | BraceOpen => parseExecutableDefinition(lexer)
   | Name("schema" | "scalar" | "type" | "interface" | "union" | "enum" | "input" | "directive") => parseTypeSystemDefinition(lexer)
-  /*| Name("extend") => parseTypeSystemExtension(lexer)*/
+  // | Name("extend") => parseTypeSystemExtension(lexer)
   | _ => unexpected(lexer)
   };
 
