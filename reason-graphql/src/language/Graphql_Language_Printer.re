@@ -348,9 +348,21 @@ let printSchemaExtension = ({ operationTypes, directives }: schemaExtension) => 
   ], " ");
 };
 
+let printScalarTypeExtension = ({ name, directives }: scalarTypeExtension) => {
+  let directivesString = directives -> Belt.Option.map(_, printDirectives) -> Belt.Option.getWithDefault(_, "");
+
+  join([
+    "extend",
+    "scalar",
+    name,
+    directivesString,
+  ], " ");
+};
+
 let printTypeSystemExt = (typeSystemExt) => {
   switch(typeSystemExt) {
   | SchemaExtension(schemaExtension) => printSchemaExtension(schemaExtension)
+  | ScalarTypeExtension(scalarTypeExtension) => printScalarTypeExtension(scalarTypeExtension)
   | _ => "Not Implemented"
   }
 }

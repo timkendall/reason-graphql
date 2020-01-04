@@ -69,6 +69,7 @@ describe("Parse and print a graphql schema", () => {
     union Person = User | Admin @test
 
     extend schema @example
+    extend scalar DateTime @example
   |};
 
   test("should parse schema correctly", () => {
@@ -140,7 +141,9 @@ type Foo {
 
 union Person = Admin | User @test
 
-extend schema @example|};
+extend schema @example
+
+extend scalar DateTime @example|};
  
     expect(out) |> toBe(schema);
   });

@@ -648,6 +648,26 @@ let parseSchemaExtension = (lexer: Lexer.t) => {
   }
 };
 
+
+let parseScalarTypeExtension = (lexer: Lexer.t) => {
+  let%Result _ = expectKeyword(lexer, "scalar");
+  let%Result name = parseName(lexer);
+
+  let directives = parseDirectives(lexer, ~isConst=true) 
+    |> Belt.Result.map(_, dirs => Some(dirs)) |> Belt.Result.getWithDefault(_, None);
+  
+  /* TODO Check for 0 length */
+
+  if (Belt.Option.isNone(directives)) {
+    unexpected(lexer);
+  } else {
+    Ok(TypeSystemExtension(ScalarTypeExtension({
+      name,
+      directives,
+    })));
+  }
+};
+
 let parseTypeSystemExtension = (lexer: Lexer.t) => {
   let%Result _ = expectKeyword(lexer, "extend");
   /* Supported extensions: 
@@ -661,7 +681,8 @@ let parseTypeSystemExtension = (lexer: Lexer.t) => {
   */
   switch (lexer.curr.token) {
   | Name("schema") => parseSchemaExtension(lexer)
-  // | Name("scalar" | "type" | "interface" | "union" | "enum" | "input") => parseTypeSystemDefinition(lexer)
+  | Name("scalar") => parseScalarTypeExtension(lexer)
+  // | Name("type" | "interface" | "union" | "enum" | "input") => parseTypeSystemDefinition(lexer)
   | _ => unexpected(lexer)
   };
 };
